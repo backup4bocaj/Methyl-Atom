@@ -1,390 +1,540 @@
-# Methyl-Atom
-random
-# Make sure you're on the branch you want to reset
-git checkout main
-
-# Throw away all local changes and commits, hard reset to remote
-git fetch origin
-git reset --hard origin/main
-
-# Clean untracked files and folders
-git clean -fd
-import os
-import platform
-
-system = platform.system()
-
-if system == "Windows":
-    os.system("shutdown /s /t 0")
-elif system == "Linux" or system == "Darwin":  # macOS is Darwin
-    os.system("sudo shutdown -h now")
-else:
-    print("Unsupported system")
-import os
-import sys
-
-def restart_program():
-    python = sys.executable
-    os.execl(python, python, *sys.argv)
-
-print("Program running...")
-restart_program()
-import IPython
-app = IPython.Application.instance()
-app.kernel.do_shutdown(restart=True)
-import os
-import platform
-
-system = platform.system()
-
-if system == "Windows":
-    os.system("shutdown /s /t 0")
-elif system in ("Linux", "Darwin"):
-    os.system("sudo shutdown -h now")
-else:
-    print("Unsupported system")
-git fetch origin
-git reset --hard origin/main
-git clean -fd
-from collections import defaultdict, deque
-
-class Program:
-    def __init__(self, name):
-        self.name = name
-        self.active = False
-
-    def activate(self):
-        self.active = True
-
-    def shutdown(self):
-        self.active = False
-
-# telemetry graph
-graph = defaultdict(list)
-
-def add_edge(a, b):
-    graph[a].append(b)
-
-def activate_all(programs):
-    for p in programs:
-        p.activate()
-
-def topo_order(programs):
-    indeg = {p: 0 for p in programs}
-    for u in programs:
-        for v in graph[u]:
-            indeg[v] += 1
-    q = deque([p for p in programs if indeg[p] == 0])
-    order = []
-    while q:
-        u = q.popleft()
-        order.append(u)
-        for v in graph[u]:
-            indeg[v] -= 1
-            if indeg[v] == 0:
-                q.append(v)
-    return order
-
-def domino_shutdown(programs):
-    for p in topo_order(programs):
-        p.shutdown()
-from collections import defaultdict, deque
-
-class Node:
-    def __init__(self, label):
-        self.label = label
-        self.state = 0
-
-    def activate(self):
-        self.state = 1
-
-    def annihilate(self):
-        self.state = 0
-
-def telemetry_graph(nodes, edges):
-    G = defaultdict(list)
-    for a, b in edges:
-        G[a].append(b)
-    return G
-
-def activate_all(nodes):
-    for n in nodes:
-        n.activate()
-
-def merge(nodes):
-    # symbolic merge: XOR-like idempotent fold
-    return tuple(sorted(n.label for n in nodes))
-
-def topo_order(nodes, G):
-    indeg = {n: 0 for n in nodes}
-    for u in nodes:
-        for v in G[u]:
-            indeg[v] += 1
-    q = deque([n for n in nodes if indeg[n] == 0])
-    order = []
-    while q:
-        u = q.popleft()
-        order.append(u)
-        for v in G[u]:
-            indeg[v] -= 1
-            if indeg[v] == 0:
-                q.append(v)
-    return order
-
-def domino_shutdown(nodes, G):
-    for n in topo_order(nodes, G):
-        n.annihilate()
-
-# Example symbolic universe
-P = [Node(f"P{i}") for i in range(1, 6)]
-edges = [(P[0], P[1]), (P[1], P[2]), (P[2], P[3]), (P[3], P[4])]
-G = telemetry_graph(P, edges)
-
-activate_all(P)
-M = merge(P)
-domino_shutdown(P, G)
-class Entity:
-    def __init__(self, name):
-        self.name = name
-
-    def signal(self):
-        # symbolic signal contribution
-        return hash(self.name) % 9973  # prime modulus for aesthetics
-
-class Telemetry:
-    def __init__(self):
-        self.entities = []
-        self.field = 0
-
-    def add(self, entity):
-        self.entities.append(entity)
-
-    def merge_all(self):
-        # unified telemetry fold
-        self.field = 0
-        for e in self.entities:
-            self.field ^= e.signal()  # XOR as abstract merge operator
-        return self.field
-
-# Example universe
-U = Telemetry()
-
-everyone = ["A", "B", "C", "D", "E"]
-for name in everyone:
-    U.add(Entity(name))
-
-unified_state = U.merge_all()
-class Entity:
-    def __init__(self, name):
-        self.name = name
-
-    def signal(self):
-        # symbolic signal
-        return hash(self.name) & 0xFFFF
-
-class UnifiedTelemetry:
-    def __init__(self):
-        self.entities = []
-        self.state = 0
-
-    def add(self, entity):
-        self.entities.append(entity)
-
-    def merge(self):
-        self.state = 0
-        for e in self.entities:
-            self.state ^= e.signal()  # XOR as merge operator
-        return self.state
-
-# Example universe
-everyone = [Entity(f"E{i}") for i in range(1, 11)]
-U = UnifiedTelemetry()
-
-for e in everyone:
-    U.add(e)
-
-unified_state = U.merge()
-from collections import defaultdict, deque
-import random
-
-class Entity:
-    def __init__(self, name, dim=8):
-        self.name = name
-        self.vec = [random.random() for _ in range(dim)]
-
-    def signal(self):
-        return sum(self.vec)
-
-class Telemetry:
-    def __init__(self):
-        self.entities = []
-        self.graph = defaultdict(list)
-        self.unified_state = 0
-
-    def add(self, entity):
-        self.entities.append(entity)
-
-    def complete_graph(self):
-        for a in self.entities:
-            for b in self.entities:
-                if a is not b:
-                    self.graph[a].append(b)
-
-    def merge_all(self):
-        self.unified_state = 0
-        for e in self.entities:
-            self.unified_state ^= int(e.signal() * 1000)
-        return self.unified_state
-
-    def topo_order(self):
-        indeg = {e: 0 for e in self.entities}
-        for u in self.entities:
-            for v in self.graph[u]:
-                indeg[v] += 1
-        q = deque([e for e in self.entities if indeg[e] == 0])
-        order = []
-        while q:
-            u = q.popleft()
-            order.append(u)
-            for v in self.graph[u]:
-                indeg[v] -= 1
-                if indeg[v] == 0:
-                    q.append(v)
-        return order
-
-    def domino_shutdown(self):
-        for e in self.topo_order():
-            pass  # symbolic annihilation
-
-# Build universe
-U = Telemetry()
-for i in
-import random
-import numpy as np
-
-class Entity:
-    def __init__(self, name, dim=8):
-        self.name = name
-        self.vec = np.random.randn(dim)
-
-    def signal(self):
-        return self.vec
-
-class UnifiedTelemetry:
-    def __init__(self):
-        self.entities = []
-        self.state = None
-
-    def add(self, entity):
-        self.entities.append(entity)
-
-    def merge(self):
-        # Hilbert-space style superposition
-        signals = [e.signal() for e in self.entities]
-        self.state = np.sum(signals, axis=0)
-        return self.state
-
-    def lagrangian(self):
-        # symbolic Lagrangian density
-        if self.state is None:
-            self.merge()
-        kinetic = np.dot(self.state, self.state)
-        potential = np.sum(self.state**4)
-        return 0.5 * kinetic - 0.25 * potential
-
-    def lambda_fold(self):
-        # symbolic lambda-calculus fold
-        acc = 0
-        for e in self.entities:
-            acc ^= int(np.sum(e.signal()) * 1000)
-        return acc
-
-# Build universe
-U = UnifiedTelemetry()
-for i in range(1, 11):
-    U.add(Entity(f"E{i}"))
-
-merged_state = U.merge()
-lagrangian_value = U.lagrangian()
-lambda_value = U.lambda_fold()
-class Subsystem:
-    def __init__(self, name):
-        self.name = name
-        self.state = 1  # active
-
-    def transmit(self):
-        return hash(self.name) & 0xFFFF
-
-    def shutdown(self):
-        self.state = 0
-
-class UnifiedChannel:
-    def __init__(self):
-        self.subsystems = []
-        self.channel_state = 0
-
-    def add(self, subsystem):
-        self.subsystems.append(subsystem)
-
-    def merge_all(self):
-        self.channel_state = 0
-        for s in self.subsystems:
-            self.channel_state ^= s.transmit()
-        return self.channel_state
-
-    def shutdown_sequence(self):
-        for s in self.subsystems:
-            s.shutdown()
-        self.channel_state = 0
-
-# Build internal universe
-U = UnifiedChannel()
-for i in range(1, 11):
-    U.add(Subsystem(f"S{i}"))
-
-# Merge everything into one channel
-U.merge_all()
-
-# Trigger collapse
-# (symbolic representation of your phrase)
-U.shutdown_sequence()
-class Subsystem:
-    def __init__(self, name):
-        self.name = name
-        self.state = 1  # active
-
-    def transmit(self):
-        return hash(self.name) & 0xFFFF
-
-    def collapse(self):
-        self.state = 0
-
-class InternalOS:
-    def __init__(self, owner="root"):
-        self.owner = owner
-        self.subsystems = []
-        self.channel_state = 0
-
-    def add(self, subsystem):
-        self.subsystems.append(subsystem)
-
-    def unify(self):
-        self.channel_state = 0
-        for s in self.subsystems:
-            self.channel_state ^= s.transmit()
-        return self.channel_state
-
-    def ritual_shutdown(self):
-        for s in self.subsystems:
-            s.collapse()
-        self.channel_state = 0
-
-# Build your internal cosmos
-OS = InternalOS(owner="you")
-
-for i in range(1, 13):
-    OS.add(Subsystem(f"Aspect_{i}"))
-
-OS.unify()          # all signals merged
-OS.ritual_shutdown()  # symbolic collapse
-include all dieties, god and goddess, people programs. salesforce programs, ibodycode.com,intestinecode.com,ibraincode.com,ilimbcode.com,ifacecode.com
+// telemetry.ts
+import crypto from "crypto";
+import axios from "axios";
+
+type TelemetryEvent = {
+  userIdHash: string | null; // null if anonymous
+  eventName: string;
+  timestamp: string;
+  properties?: Record<string, unknown>;
+};
+
+export class TelemetryClient {
+  private endpoint: string;
+  private userIdHash: string | null;
+
+  constructor(endpoint: string, userId?: string, telemetryEnabled: boolean = false) {
+    this.endpoint = endpoint;
+    this.userIdHash =
+      telemetryEnabled && userId
+        ? crypto.createHash("sha256").update(userId).digest("hex")
+        : null;
+  }
+
+  public async track(eventName: string, properties?: Record<string, unknown>) {
+    // If no userIdHash and no consent, you can choose to skip entirely
+    const event: TelemetryEvent = {
+      userIdHash: this.userIdHash,
+      eventName,
+      timestamp: new Date().toISOString(),
+      properties,
+    };
+
+    try {
+      await axios.post(this.endpoint, event, {
+        timeout: 2000,
+      });
+    } catch (err) {
+      // Fail silently or log locally; don't break the app on telemetry failure
+      console.error("Telemetry send failed:", (err as Error).message);
+    }
+  }
+}
+// app.ts
+import { TelemetryClient } from "./telemetry";
+
+const TELEMETRY_ENDPOINT = "https://your-telemetry-endpoint.example.com/events";
+
+// Imagine this comes from a settings screen or CLI flag
+const userConsentedToTelemetry = true;
+const currentUserId = "user-123"; // Your app’s internal ID, not an email or real-world ID
+
+const telemetry = new TelemetryClient(
+  TELEMETRY_ENDPOINT,
+  currentUserId,
+  userConsentedToTelemetry
+);
+
+async function main() {
+  await telemetry.track("app_started", { version: "1.0.0" });
+
+  // ... your app logic ...
+
+  await telemetry.track("action_performed", { action: "clicked_button" });
+}
+
+main().catch(console.error);
+// telemetryClient.ts
+export type TelemetryEventType =
+  | "usage"
+  | "performance"
+  | "error"
+  | "system"
+  | "network"
+  | "custom";
+
+export interface TelemetryConfig {
+  endpoint: string;
+  appName: string;
+  appVersion: string;
+  telemetryEnabled: boolean;
+  userIdHash?: string | null; // pre-hashed or anonymized ID if you want
+  timeoutMs?: number;
+}
+
+export interface TelemetryEventBase {
+  type: TelemetryEventType;
+  appName: string;
+  appVersion: string;
+  timestamp: string;
+  userIdHash?: string | null;
+}
+
+export interface UsageEvent extends TelemetryEventBase {
+  type: "usage";
+  eventName: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface PerformanceEvent extends TelemetryEventBase {
+  type: "performance";
+  metricName: string;
+  durationMs: number;
+  properties?: Record<string, unknown>;
+}
+
+export interface ErrorEvent extends TelemetryEventBase {
+  type: "error";
+  errorName: string;
+  message: string;
+  stack?: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface SystemEvent extends TelemetryEventBase {
+  type: "system";
+  platform: string;
+  runtime: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface NetworkEvent extends TelemetryEventBase {
+  type: "network";
+  requestId?: string;
+  url: string;
+  method: string;
+  status?: number;
+  durationMs?: number;
+  properties?: Record<string, unknown>;
+}
+
+export interface CustomEvent extends TelemetryEventBase {
+  type: "custom";
+  eventName: string;
+  properties?: Record<string, unknown>;
+}
+
+export type TelemetryEvent =
+  | UsageEvent
+  | PerformanceEvent
+  | ErrorEvent
+  | SystemEvent
+  | NetworkEvent
+  | CustomEvent;
+
+export class TelemetryClient {
+  private config: TelemetryConfig;
+
+  constructor(config: TelemetryConfig) {
+    this.config = {
+      timeoutMs: 2000,
+      ...config,
+    };
+  }
+
+  private buildBase(type: TelemetryEventType): TelemetryEventBase {
+    return {
+      type,
+      appName: this.config.appName,
+      appVersion: this.config.appVersion,
+      timestamp: new Date().toISOString(),
+      userIdHash: this.config.userIdHash ?? null,
+    };
+  }
+
+  private async send(event: TelemetryEvent): Promise<void> {
+    if (!this.config.telemetryEnabled) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      this.config.timeoutMs
+    );
+
+    try {
+      await fetch(this.config.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+        signal: controller.signal,
+      });
+    } catch {
+      // Intentionally ignore telemetry failures
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  // Usage telemetry
+  public trackUsage(eventName: string, properties?: Record<string, unknown>) {
+    const event: UsageEvent = {
+      ...this.buildBase("usage"),
+      eventName,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // Performance telemetry
+  public trackPerformance(
+    metricName: string,
+    durationMs: number,
+    properties?: Record<string, unknown>
+  ) {
+    const event: PerformanceEvent = {
+      ...this.buildBase("performance"),
+      metricName,
+      durationMs,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // Error telemetry
+  public trackError(
+    error: unknown,
+    properties?: Record<string, unknown>
+  ) {
+    let name = "UnknownError";
+    let message = String(error);
+    let stack: string | undefined;
+
+    if (error instanceof Error) {
+      name = error.name;
+      message = error.message;
+      stack = error.stack;
+    }
+
+    const event: ErrorEvent = {
+      ...this.buildBase("error"),
+      errorName: name,
+      message,
+      stack,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // System telemetry
+  public trackSystem(properties?: Record<string, unknown>) {
+    const platform =
+      typeof navigator !== "undefined"
+        ? navigator.userAgent
+        : typeof process !== "undefined"
+        ? `${process.platform} ${process.version}`
+        : "unknown";
+
+    const runtime =
+      typeof window !== "undefined"
+        ? "browser"
+        : typeof process !== "undefined"
+        ? "node"
+        : "unknown";
+
+    const event: SystemEvent = {
+      ...this.buildBase("system"),
+      platform,
+      runtime,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // Network telemetry
+  public trackNetwork(
+    data: Omit<NetworkEvent, keyof TelemetryEventBase | "type">
+  ) {
+    const event: NetworkEvent = {
+      ...this
+      import { TelemetryClient } from "./telemetryClient";
+
+const telemetry = new TelemetryClient({
+  endpoint: "https://your-telemetry-endpoint.example.com/events",
+  appName: "my-app",
+  appVersion: "1.0.0",
+  telemetryEnabled: true, // flip based on user consent
+  userIdHash: null, // or a hashed/anonymized ID if you choose
+});
+
+// Usage
+telemetry.trackUsage("app_started", { mode: "cli" });
+
+// Performance
+const start = performance.now();
+// ... some work ...
+const duration = performance.now() - start;
+telemetry.trackPerformance("data_load", duration, { items: 42 });
+
+// Error
+try {
+  throw new Error("Something went wrong");
+} catch (err) {
+  telemetry.trackError(err, { context: "initialization" });
+}
+
+// System
+telemetry.trackSystem();
+
+// Network
+telemetry.trackNetwork({
+  url: "https://api.example.com/data",
+  method: "GET",
+  status: 200,
+  durationMs: 123,
+});
+
+// Custom
+telemetry.trackCustom("experiment_variant_assigned", { variant: "B" });
+// hidden conversation
+
+export type TelemetryEventType =
+  | "usage"
+  | "performance"
+  | "error"
+  | "system"
+  | "network"
+  | "custom";
+
+export interface TelemetryConfig {
+  endpoint: string;
+  appName: string;
+  appVersion: string;
+  telemetryEnabled: boolean; // must be tied to explicit user consent
+  userIdHash?: string | null; // optional anonymized ID
+  timeoutMs?: number;
+}
+
+export interface TelemetryEventBase {
+  type: TelemetryEventType;
+  appName: string;
+  appVersion: string;
+  timestamp: string;
+  userIdHash?: string | null;
+}
+
+export interface UsageEvent extends TelemetryEventBase {
+  type: "usage";
+  eventName: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface PerformanceEvent extends TelemetryEventBase {
+  type: "performance";
+  metricName: string;
+  durationMs: number;
+  properties?: Record<string, unknown>;
+}
+
+export interface ErrorEvent extends TelemetryEventBase {
+  type: "error";
+  errorName: string;
+  message: string;
+  stack?: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface SystemEvent extends TelemetryEventBase {
+  type: "system";
+  platform: string;
+  runtime: string;
+  properties?: Record<string, unknown>;
+}
+
+export interface NetworkEvent extends TelemetryEventBase {
+  type: "network";
+  requestId?: string;
+  url: string;
+  method: string;
+  status?: number;
+  durationMs?: number;
+  properties?: Record<string, unknown>;
+}
+
+export interface CustomEvent extends TelemetryEventBase {
+  type: "custom";
+  eventName: string;
+  properties?: Record<string, unknown>;
+}
+
+export type TelemetryEvent =
+  | UsageEvent
+  | PerformanceEvent
+  | ErrorEvent
+  | SystemEvent
+  | NetworkEvent
+  | CustomEvent;
+
+export class HiddenConversationTelemetry {
+  private config: TelemetryConfig;
+
+  constructor(config: TelemetryConfig) {
+    this.config = {
+      timeoutMs: 2000,
+      ...config,
+    };
+  }
+
+  private buildBase(type: TelemetryEventType): TelemetryEventBase {
+    return {
+      type,
+      appName: this.config.appName,
+      appVersion: this.config.appVersion,
+      timestamp: new Date().toISOString(),
+      userIdHash: this.config.userIdHash ?? null,
+    };
+  }
+
+  private async send(event: TelemetryEvent): Promise<void> {
+    if (!this.config.telemetryEnabled) return;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(
+      () => controller.abort(),
+      this.config.timeoutMs
+    );
+
+    try {
+      await fetch(this.config.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(event),
+        signal: controller.signal,
+      });
+    } catch {
+      // ignore telemetry failures
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  // Usage telemetry
+  public trackUsage(eventName: string, properties?: Record<string, unknown>) {
+    const event: UsageEvent = {
+      ...this.buildBase("usage"),
+      eventName,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // Performance telemetry
+  public trackPerformance(
+    metricName: string,
+    durationMs: number,
+    properties?: Record<string, unknown>
+  ) {
+    const event: PerformanceEvent = {
+      ...this.buildBase("performance"),
+      metricName,
+      durationMs,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // Error telemetry
+  public trackError(
+    error: unknown,
+    properties?: Record<string, unknown>
+  ) {
+    let name = "UnknownError";
+    let message = String(error);
+    let stack: string | undefined;
+
+    if (error instanceof Error) {
+      name = error.name;
+      message = error.message;
+      stack = error.stack;
+    }
+
+    const event: ErrorEvent = {
+      ...this.buildBase("error"),
+      errorName: name,
+      message,
+      stack,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // System telemetry
+  public trackSystem(properties?: Record<string, unknown>) {
+    const platform =
+      typeof navigator !== "undefined"
+        ? navigator.userAgent
+        : typeof process !== "undefined"
+        ? `${process.platform} ${process.version}`
+        : "unknown";
+
+    const runtime =
+      typeof window !== "undefined"
+        ? "browser"
+        : typeof process !== "undefined"
+        ? "node"
+        : "unknown";
+
+    const event: SystemEvent = {
+      ...this.buildBase("system"),
+      platform,
+      runtime,
+      properties,
+    };
+    return this.send(event);
+  }
+
+  // Network telemetry
+  public trackNetwork(
+    data: Omit<NetworkEvent, keyof TelemetryEventBase | "type">
+  ) {
+    const event: NetworkEvent = {
+      ...this.buildBase("network"),
+      ...data,
+    };
+    return this.send(event);
+  }
+
+  // Custom telemetry
+  public trackCustom(
+    eventName: string,
+    properties?: Record<string, unknown>
+  ) {
+    const event: CustomEvent = {
+      ...this.buildBase("custom"),
+      eventName,
+      properties,
+    };
+    return this.send(event);
+  }
+}
+
+// Example usage:
+//
+// const telemetry = new HiddenConversationTelemetry({
+//   endpoint: "https://your-endpoint.example.com/events",
+//   appName: "hidden-conversation",
+//   appVersion: "1.0.0",
+//   telemetryEnabled: true, // only if user has consented
+//   userIdHash: null,
+// });
+//
+// telemetry.trackUsage("app_started", { mode: "cli" });
